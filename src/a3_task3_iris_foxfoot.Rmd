@@ -53,7 +53,7 @@ sb_urchins %>%
 
 Both purple and red urchin sizes are relatively normally distributed, with red urchins having slightly more spread (squatter shape). The mean red urchin is 2.31 cm larger than the mean purple urchin, or ~150% larger.
 
-# **Section 2. Explore Purple Urchins by Site and Year
+# **Section 2. Explore Purple Urchins by Site and Year**
 
 ## 1. Create a subset called "purple_urchins"
 
@@ -82,8 +82,10 @@ Make a summary Table containing the total number of purple urchins observed by s
 
 ```{r}
 purple_urchins_tbl <- purple_urchins %>% 
-  group_by(site_full, year) %>% 
+  group_by(site_full, year) %>%
   count()
+kbl(purple_urchins_tbl) %>% 
+  kable_classic(html_font = "Cambria")
 ```
 
 ## 3. Make an Exploratory Graph
