@@ -16,7 +16,7 @@ library(lubridate)
 
 ## 1. Exploratory data vizualization
 
-### Read in the data
+### Read in the data using here package
 
 ```{r}
 sb_urchins <- read.csv(here("data", "urchins.csv"))
@@ -39,7 +39,7 @@ ggplot(data = sb_urchins, aes(x = COMMON_NAME, y = SIZE)) + geom_boxplot() + lab
 
 ## 2. Descriptive Statistics Table
 
-Create a summary table with mean, median, standard devaition, and sample size for purple and red urchins. Use groub_by() and summarize()
+Create a summary table with mean, median, standard devaition, and sample size for purple and red urchins. Use groub_by() and summarize(). Explore table formatting with the KableExtra package.
 
 ```{r}
 sb_urchins %>% 
@@ -58,8 +58,11 @@ Both purple and red urchin sizes are relatively normally distributed, with red u
 ## 1. Create a subset called "purple_urchins"
 
 Filter to only include observations for purple urchins
-Convert the date to class “Date” 
-Create a new column that only contains the year
+
+Convert the date to class “Date” using lubridate package
+
+Create a new column that only contains the year using mutate()
+
 Create a new column called site_full that contains the full name (not abbreviation) for each of the five sites
 
 ```{r}
@@ -90,7 +93,7 @@ kbl(purple_urchins_tbl) %>%
 
 ## 3. Make an Exploratory Graph
 
-Show the counts of purple urchins at each site over time for the years.
+Show the counts of purple urchins at each site over time for the years. Here I use geom_col() and facet_grid()
 
 ```{r}
 ggplot(data = purple_urchins_tbl, aes(x = year, y = n, fill = site_full)) + geom_col() + facet_grid(~site_full) + theme(legend.position = "none")

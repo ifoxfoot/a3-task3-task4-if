@@ -1,0 +1,103 @@
+---
+title: "a3_task4_iris_foxfoot"
+author: "Iris Foxfoot"
+date: "11/1/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+library(tidyverse)
+library(lubridate)
+library(here)
+library(janitor)
+library(kableExtra)
+```
+# **Naples Reef Urchins**
+
+In this exercise I will explore the size differences between purple urchins (*Strongylocentrotus purpuratus*) in treated vs. untreated kelp forests. Treatment consists of annually removing kelp and then allowing the forest to re-colonize yearly. These observations are from the Naples Reef in southern California and were taken in January, 2010 by the Environmental Data Initiative
+
+Citation: Reed, D. 2020. SBC LTER: Reef: Long-term experiment: Kelp removal: Urchin size frequency distribution ver 20. Environmental Data Initiative. https://doi.org/10.6073/pasta/5a1e9ef03aa47bd2225c0bb98a02a63b.
+
+## Data Wrangling
+
+First I will read in the data and clean the names
+```{r}
+urchins <- read_csv(here("data", "urchins.csv")) %>% 
+  clean_names()
+```
+
+Then I will fix the dates so that they are classed as "Date" by R and then I will make new columns for the month and year
+
+```{r}
+urchins_date <- urchins %>% 
+  mutate(date = mdy(date)) %>% 
+  mutate(year = year(date)) %>% 
+  mutate(month = month(date))
+```
+
+Then I will filter to show only observations of purple urchins from Naples Reef (NAPL) in January, 2010
+
+```{r}
+urchins_napl_2010 <- urchins_date %>% 
+  filter(year == "2010", site == "NAPL", common_name == "Purple Urchin")
+```
+
+## Data Distribution Explored Visually
+
+### 1. Histogram
+
+First I will make urchin size histograms in treated (ANNUAL) vs untreated (CONTROL) kelp
+
+```{r}
+ggplot(data = urchins_napl_2010, aes(x = size)) + geom_histogram() + facet_wrap("treatment") + labs(x = "Urchin Size (cm)", y = "Number of Urchins")
+```
+
+Takeaways: Urchin size in both annually treated and the control plots seems to be ~normally distributed. Urchins in treated plots seem to be smaller but a few larger urchins skew the spread positively. Urchins from control plots seem to be more centrally distributed.
+
+### 2. QQ Plot
+
+Now I will make a QQ plot of urchin size in treated vs untreated kelp
+
+```{r}
+ggplot(data = urchins_napl_2010, aes(sample = size)) + geom_qq() + facet_wrap("treatment")
+```
+ 
+Takeaways: Again we can see a slight positive skew in the ANNUAL (treated) category but neither are very skewed. 
+
+### 3. Table of Descriptive Statistics
+
+Here I will create a table of treated vs untreated urchins including mean size, standard deviation, and sample size
+
+```{r}
+urchins_napl_2010 %>% 
+  group_by(treatment) %>% 
+  summarise(mean(size), sd (size), n()) %>% 
+  kbl() %>% 
+  kable_classic(html_font = "Cambria")
+```
+Takeaways: Here we can see that the mean sizes are only 0.2 cm away while the standard deviation is ~0.8 cm for both groups.
+
+## Two-Sample T-Test
+
+Now I will preform a two-sample t-test comparing mean sizes between urchins in treated versus untreated kelp forests. I will then discuss the results
+
+First I will split the dataframe into two samples based on treatment, then convert the size observations to vectors
+
+```{r}
+annual_sample <- urchins_napl_2010 %>% 
+  filter(treatment == "ANNUAL") %>% 
+  pull(size)
+
+control_sample <- urchins_napl_2010 %>% 
+  filter(treatment == "CONTROL") %>% 
+  pull(size)
+```
+
+Now a simple two-sample t-test
+
+```{r}
+t.test(annual_sample, control_sample)
+```
+
+Takeaways: Here we can see that the actual mean size difference between urchins in treated versus untreated kelp forests is 0.2cm. Urchins from untreated (control) kelp zones were ~6% larger than urchins from treated (annual) zones. The p-value indicates that there is a very small chance (2/10,000) that that these two samples have been taken from a population with the same mean. This means that if we took two samples from a single population ten thousand times, the sample means would be at least as different as ours in only two cases. So it is unlikely but not impossible that our two samples are from the same population.
